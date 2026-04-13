@@ -3,4 +3,7 @@ name = "ai-domain-harvester"
 version = "0.1.0"
 edition = "2024"
 
+authors = ["Iago Bozza <iago@iagobozza.com>"]
+description = "Concurrent Rust CLI for scraping and structuring .ai domain sales from NamePros forum data."
+
 [dependencies]
