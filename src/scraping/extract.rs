@@ -29,6 +29,9 @@ fn extract_thread_slugs(html: &Html) -> Result<Vec<String>, AiDomainHarvesterErr
     Ok(Vec::new())
 }
 
+#[cfg(test)]
+mod extract_thread_slugs_tests {}
+
 /// Extracts domain sales from a thread page.
 ///
 /// A thread page contains unstructured text describing multiple domain sales. This function parses
@@ -55,3 +58,6 @@ fn extract_thread_slugs(html: &Html) -> Result<Vec<String>, AiDomainHarvesterErr
 fn extract_domain_sales(html: &Html) -> Result<Vec<Sale>, AiDomainHarvesterError> {
     Ok(Vec::new())
 }
+
+#[cfg(test)]
+mod extract_domain_sales_tests {}

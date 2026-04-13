@@ -26,6 +26,9 @@ fn parse_thread_index_page(raw_html: &str) -> Result<Html, AiDomainHarvesterErro
     Ok(Html::new_document())
 }
 
+#[cfg(test)]
+mod parse_thread_index_page_tests {}
+
 /// Parses a thread page into an HTML document.
 ///
 /// A thread page contains the detailed list of domain sales for a specific day.
@@ -49,3 +52,6 @@ fn parse_thread_index_page(raw_html: &str) -> Result<Html, AiDomainHarvesterErro
 fn parse_thread(raw_html: &str) -> Result<Html, AiDomainHarvesterError> {
     Ok(Html::new_document())
 }
+
+#[cfg(test)]
+mod parse_thread_tests {}
