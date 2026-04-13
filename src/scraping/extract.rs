@@ -25,7 +25,7 @@ use scraper::Html;
 /// - This function assumes the standard structure of the NamePros forum.
 /// - Only thread links are extracted; pagination is handled separately.
 /// - The returned slugs are used to fetch individual thread pages.
-fn extract_threads_slugs(html: &Html) -> Result<Vec<String>, AiDomainHarvesterError> {
+fn extract_thread_slugs(html: &Html) -> Result<Vec<String>, AiDomainHarvesterError> {
     Ok(Vec::new())
 }
 
