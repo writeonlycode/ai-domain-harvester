@@ -1,10 +1,10 @@
-use crate::AiDomainHarvesterError;
+use crate::PhilEntriesError;
 use scraper::Html;
 
-/// Parses a thread index page into an HTML document.
+/// Parses an index page into an HTML document.
 ///
-/// A thread index page contains a list of threads, each representing
-/// a day's domain sales.
+/// An index page contains a list of philosophy entries (e.g. SEP or IEP articles). This function
+/// converts raw HTML into a structured DOM for further processing.
 ///
 /// # Arguments
 ///
@@ -12,46 +12,36 @@ use scraper::Html;
 ///
 /// # Returns
 ///
-/// Returns a parsed `Html` document that can be queried using selectors.
+/// A parsed `Html` document that can be queried using CSS selectors.
 ///
 /// # Errors
 ///
-/// Returns `AiDomainHarvesterError` if parsing fails.
-///
-/// # Notes
-///
-/// This function does not perform any data extraction. It is only responsible
-/// for converting raw HTML into a DOM-like structure for further processing.
-fn parse_thread_index_page(raw_html: &str) -> Result<Html, AiDomainHarvesterError> {
-    Ok(Html::new_document())
+/// Returns `PhilEntriesError` if the HTML cannot be parsed.
+fn parse_index_page(raw_html: &str) -> Result<Html, PhilEntriesError> {
+    Ok(Html::parse_document(raw_html))
 }
 
 #[cfg(test)]
-mod parse_thread_index_page_tests {}
+mod parse_index_page_tests {}
 
-/// Parses a thread page into an HTML document.
+/// Parses an entry page into an HTML document.
 ///
-/// A thread page contains the detailed list of domain sales for a specific day.
+/// An entry page contains a full philosophical article from sources like SEP or IEP.
 ///
 /// # Arguments
 ///
-/// * `raw_html` - The raw HTML content of the thread page.
+/// * `raw_html` - The raw HTML content of the entry page.
 ///
 /// # Returns
 ///
-/// Returns a parsed `Html` document that can be queried using selectors.
+/// A parsed `Html` document for structured extraction.
 ///
 /// # Errors
 ///
-/// Returns `AiDomainHarvesterError` if parsing fails.
-///
-/// # Notes
-///
-/// This function does not perform any data extraction. It is only responsible
-/// for preparing the document for downstream extraction logic.
-fn parse_thread(raw_html: &str) -> Result<Html, AiDomainHarvesterError> {
-    Ok(Html::new_document())
+/// Returns `PhilEntriesError` if parsing fails.
+fn parse_entry_page(raw_html: &str) -> Result<Html, PhilEntriesError> {
+    Ok(Html::parse_document(raw_html))
 }
 
 #[cfg(test)]
-mod parse_thread_tests {}
+mod parse_entry_tests {}

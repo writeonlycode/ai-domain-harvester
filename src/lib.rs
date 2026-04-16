@@ -1,55 +1,75 @@
-//! # ai-domain-harvester
+//! # philentries
 //!
-//! A concurrent data pipeline for extracting `.ai` domain sales from forum threads.
+//! A concurrent data pipeline for extracting and structuring philosophical encyclopedia entries
+//! from authoritative sources such as the Stanford Encyclopedia of Philosophy (SEP), with support
+//! for future sources like the Internet Encyclopedia of Philosophy (IEP).
 //!
 //! ## Pipeline Overview
 //!
-//! The system operates as a two-stage pipeline:
+//! The system operates as a multi-stage concurrent ingestion pipeline:
 //!
-//! ### 1. Thread Discovery (Index Pages)
+//! ### 1. Entry Discovery (Index Pages)
 //!
 //! For each index page:
 //!
 //! 1. Fetch the index page HTML
 //! 2. Parse the document
-//! 3. Extract thread identifiers (slugs)
+//! 3. Extract entry links (articles)
 //!
-//! ### 2. Thread Processing (Fan-out)
+//! ### 2. Entry Processing (Fan-out)
 //!
-//! For each discovered thread:
+//! For each discovered entry:
 //!
-//! 1. Fetch the thread HTML
+//! 1. Fetch the entry HTML
 //! 2. Parse the document
-//! 3. Extract and normalize domain sales
+//! 3. Extract structured philosophical content
 //!
-//! ## Notes
+//! ## Output
 //!
-//! - The pipeline is designed to run concurrently using async streams
-//! - HTML parsing is separated from network fetching for testability
+//! Each entry is normalized into a structured format containing:
+//!
+//! - Title
+//! - Authors
+//! - Content
+//! - Bibliography
+//! - Source
+//!
 
 use thiserror::Error;
 
 mod scraping;
 
 #[derive(Error, Debug)]
-pub enum AiDomainHarvesterError {
+pub enum PhilEntriesError {
     #[error(transparent)]
     Request(#[from] reqwest::Error),
 
     #[error("failed to parse HTML")]
     Parse,
 
-    #[error("failed to extract data")]
+    #[error("failed to extract structured entry data")]
     Extract,
 }
 
-pub struct Sale {
-    domain: String,
-    price_usd: u64,
-    date: String,
-    venue: Option<String>,
+#[derive(Debug, Default)]
+pub struct Entry {
+    pub title: String,
+    pub authors: Vec<String>,
+    pub content: String,
+    pub bibliography: Vec<String>,
+    pub source: Source,
 }
 
-pub async fn run() -> Result<(), AiDomainHarvesterError> {
+#[derive(Debug, Default)]
+pub enum Source {
+    SEP {
+        url: String,
+    },
+
+    #[default]
+    Other,
+}
+
+pub async fn run() -> Result<(), PhilEntriesError> {
     Ok(())
 }

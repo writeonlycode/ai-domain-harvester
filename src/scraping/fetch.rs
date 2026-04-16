@@ -1,44 +1,43 @@
-use crate::AiDomainHarvesterError;
+use crate::PhilEntriesError;
+use reqwest::{
+    Client,
+    header::{
+        ACCEPT, ACCEPT_ENCODING, ACCEPT_LANGUAGE, CONNECTION, HeaderMap, HeaderValue,
+        UPGRADE_INSECURE_REQUESTS, USER_AGENT,
+    },
+};
 
-const THREAD_INDEX_PAGE_BASE_URL: &'static str = "https://www.namepros.com";
-const THREAD_INDEX_PAGE_PATH: &'static str = "/forums/daily-domain-sales.383";
+pub const ENTRIES_INDEX_PAGE_URL: &'static str = "https://plato.stanford.edu/contents.html";
+pub const ENTRY_BASE_URL: &'static str = "https://plato.stanford.edu";
 
-const THREAD_BASE_URL: &'static str = "https://www.namepros.com/threads/";
-
-/// Fetches a thread index page from the NamePros "Daily Domain Sales" forum.
+/// Fetches the SEP index page containing all philosophy entries.
 ///
-/// Given a page number, this function retrieves the corresponding index page containing a list of
-/// threads (each representing a day's domain sales).
+/// The index page lists all available encyclopedia entries (e.g. "Free Will", "Consciousness").
 ///
 /// # Arguments
 ///
-/// * `page` - The page number to fetch (e.g. `2` for `/page-2`).
+/// * `client` - HTTP client
+/// * `url` - URL of the table of contents
 ///
 /// # Returns
 ///
-/// Returns the raw HTML of the thread index page as a `String`.
+/// Raw HTML content of the index page.
 ///
 /// # Errors
 ///
-/// Returns `AiDomainHarvesterError` if the request fails, the response cannot be read, or a
-/// non-success status code is returned.
-///
-/// # Example
-///
-/// ```no_run
-/// let client = reqwest::Client::new();
-/// let html = fetch_thread_index_page(&client, 1).await?;
-/// ```
-async fn fetch_thread_index_page(
-    client: &reqwest::Client,
-    base_url: &str,
-    page: u64,
-) -> Result<String, AiDomainHarvesterError> {
-    Ok(format!(""))
+/// Returns `PhilEntriesError` if the request fails or response cannot be parsed.
+async fn fetch_index_page(client: &Client, url: &str) -> Result<String, PhilEntriesError> {
+    Ok(client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .text()
+        .await?)
 }
 
 #[cfg(test)]
-mod fetch_thread_index_page_tests {
+mod fetch_index_page_tests {
     use super::*;
     use httpmock::Method::GET;
 
@@ -48,21 +47,20 @@ mod fetch_thread_index_page_tests {
 
         let mock = server.mock(|when, then| {
             when.method(GET)
-                .path("/forums/daily-domain-sales.383/page-1");
+                .path("/top-trending-remote-jobs");
 
             then.status(200).header("content-type", "text/html").body(
-                "<!DOCTYPE html><title>200 OK</title><p>The request succeeded. The resource
-                    has been fetched and transmitted in the message body.</p>",
+                "<!DOCTYPE html><title>200 OK</title><p>The request succeeded. The resource has been fetched and transmitted in the message body.</p>",
             );
         });
 
-        let client = reqwest::Client::new();
-        let server_url = server.base_url();
-        let result = fetch_thread_index_page(&client, server_url.as_str(), 1)
+        let client = build_client();
+
+        let server_url = format!("{}{}", server.base_url(), "/top-trending-remote-jobs");
+        let result = fetch_index_page(&client, server_url.as_str())
             .await
             .unwrap();
-        let expected = "<!DOCTYPE html><title>200 OK</title><p>The request succeeded. The resource
-                    has been fetched and transmitted in the message body.</p>"
+        let expected = "<!DOCTYPE html><title>200 OK</title><p>The request succeeded. The resource has been fetched and transmitted in the message body.</p>"
             .to_string();
 
         // Ensure the specified mock was called exactly one time.
@@ -81,25 +79,22 @@ mod fetch_thread_index_page_tests {
 
         let mock = server.mock(|when, then| {
             when.method(GET)
-                .path("/forums/daily-domain-sales.383/page-1");
+                .path("/top-trending-remote-jobs");
 
             then.status(500).header("content-type", "text/html").body(
-                "<!DOCTYPE html><title>500 Internal Server Error</title><p>The server has
-                    encountered a situation it does not know how to handle. This error is generic,
-                    indicating that the server cannot find a more appropriate 5XX status code to
-                    respond with.</p>",
+                "<!DOCTYPE html><title>500 Internal Server Error</title><p>The server has encountered a situation it does not know how to handle.</p>",
             );
         });
 
-        let client = reqwest::Client::new();
-        let server_url = server.base_url();
-        let result = fetch_thread_index_page(&client, server_url.as_str(), 1).await;
+        let client = build_client();
+        let server_url = format!("{}{}", server.base_url(), "/top-trending-remote-jobs");
+        let result = fetch_index_page(&client, server_url.as_str()).await;
 
         // Ensure the specified mock was called exactly one time.
         mock.assert();
 
         assert!(
-            matches!(result, Err(AiDomainHarvesterError::Request(_))),
+            matches!(result, Err(PhilEntriesError::Request(_))),
             "server_url {:?} produced an unexpected result: got {:?}, but expected error",
             server_url,
             result,
@@ -107,38 +102,63 @@ mod fetch_thread_index_page_tests {
     }
 }
 
-/// Fetches a single thread page from the NamePros forum.
+/// Fetches a single SEP entry page.
 ///
-/// A thread contains the detailed list of domain sales for a specific day. The thread is identified
-/// by its slug.
+/// Each entry represents a philosophical article (e.g. "Free Will").
 ///
 /// # Arguments
 ///
-/// * `thread_slug` - The thread slug (e.g.
-///   `"19-net-sold-for-52-088-stagehand-com-for-42-000.1383854"`).
+/// * `client` - HTTP client
+/// * `url` - URL of the entry
 ///
 /// # Returns
 ///
-/// Returns the raw HTML of the thread page as a `String`.
-///
-/// # Errors
-///
-/// Returns `AiDomainHarvesterError` if the request fails, the response cannot be read, or a
-/// non-success status code is returned.
-///
-/// # Example
-///
-/// ```no_run
-/// let client = reqwest::Client::new();
-/// let html = fetch_thread(&client, "example-thread-slug").await?;
-/// ```
-async fn fetch_thread(
-    client: &reqwest::Client,
-    base_url: &str,
-    thread_slug: &str,
-) -> Result<String, AiDomainHarvesterError> {
-    Ok(format!(""))
+/// Raw HTML of the entry page.
+async fn fetch_entry(client: &Client, url: &str) -> Result<String, PhilEntriesError> {
+    Ok(client
+        .get(url)
+        .send()
+        .await?
+        .error_for_status()?
+        .text()
+        .await?)
 }
 
 #[cfg(test)]
-mod fetch_thread_tests {}
+mod fetch_entry_tests {}
+
+pub fn build_client() -> Client {
+    let mut headers = HeaderMap::new();
+
+    headers.insert(
+        USER_AGENT,
+        HeaderValue::from_static(
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 \
+         (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        ),
+    );
+
+    headers.insert(
+        ACCEPT,
+        HeaderValue::from_static(
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        ),
+    );
+
+    headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("en-US,en;q=0.9"));
+
+    headers.insert(
+        ACCEPT_ENCODING,
+        HeaderValue::from_static("gzip, deflate, br"),
+    );
+
+    headers.insert(CONNECTION, HeaderValue::from_static("keep-alive"));
+
+    headers.insert(UPGRADE_INSECURE_REQUESTS, HeaderValue::from_static("1"));
+
+    Client::builder()
+        .default_headers(headers)
+        .http1_only() // 🔥 helps with fingerprinting
+        .build()
+        .unwrap()
+}

@@ -1,22 +1,22 @@
 [package]
-name = "ai-domain-harvester"
+name = "philentries"
 version = "0.1.0"
 edition = "2024"
 
 authors = ["Iago Bozza <iago@iagobozza.com>"]
-description = "Concurrent Rust CLI for scraping and structuring .ai domain sales from NamePros forum data."
+description = "A high-performance Rust pipeline for ingesting and structuring knowledge from multiple authoritative sources."
 readme = "README.md"
 
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/writeonlycode/ai-domain-harvester"
-homepage = "https://github.com/writeonlycode/ai-domain-harvester"
-documentation = "https://docs.rs/leadforge"
+repository = "https://github.com/writeonlycode/philentries"
+homepage = "https://github.com/writeonlycode/philentries"
+documentation = "https://docs.rs/philentries"
 
 keywords = ["cli", "async", "scraper"]
 categories = ["command-line-utilities"]
 
 [[bin]]
-name = "ai-domain-harvester"
+name = "philentries"
 path = "src/main.rs"
 
 include = [
